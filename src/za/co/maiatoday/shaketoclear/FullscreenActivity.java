@@ -1,14 +1,17 @@
 package za.co.maiatoday.shaketoclear;
 
 import za.co.maiatoday.shaketoclear.util.SystemUiHider;
-
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e.
@@ -44,6 +47,10 @@ public class FullscreenActivity extends Activity {
 	 * The instance of the {@link SystemUiHider} for this activity.
 	 */
 	private SystemUiHider mSystemUiHider;
+
+	private SensorManager mSensorManager;
+
+	private ShakeEventListener mSensorListener;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -116,7 +123,31 @@ public class FullscreenActivity extends Activity {
 		// while interacting with the UI.
 		findViewById(R.id.dummy_button).setOnTouchListener(
 				mDelayHideTouchListener);
+		
+		mSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+	    mSensorListener = new ShakeEventListener();   
+
+	    mSensorListener.setOnShakeListener(new ShakeEventListener.OnShakeListener() {
+
+	      public void onShake() {
+	        Toast.makeText(FullscreenActivity.this, "Shake!", Toast.LENGTH_SHORT).show();
+	      }
+	    });
+	
 	}
+	@Override
+	  protected void onResume() {
+	    super.onResume();
+	    mSensorManager.registerListener(mSensorListener,
+	        mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+	        SensorManager.SENSOR_DELAY_UI);
+	  }
+
+	  @Override
+	  protected void onPause() {
+	    mSensorManager.unregisterListener(mSensorListener);
+	    super.onStop();
+	  }
 
 	@Override
 	protected void onPostCreate(Bundle savedInstanceState) {
